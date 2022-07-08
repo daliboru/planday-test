@@ -8,41 +8,31 @@ import TitleBar from "./TitleBar";
 export default function Main({ data }: { data: Item[] }) {
   const [activeItems, setActiveItems] = useState([0, 2]);
   const [page, setPage] = useState(1);
-  const pressForward = useKeyPress("ArrowRight");
-  const pressBackwards = useKeyPress("ArrowLeft");
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState<Item[]>(data);
+  const pressForward = useKeyPress("ArrowRight");
+  const pressBackwards = useKeyPress("ArrowLeft");
 
-  const moveBackwards = () => {
+  const onMoveBackwards = () => {
     if (activeItems[0] > 0) {
       setPage((page) => page - 1);
       setActiveItems((arr) => [arr[0] - 2, arr[1] - 2]);
     }
   };
-  const moveForward = () => {
+  const onMoveForward = () => {
     if (activeItems[1] < filteredData.length) {
       setPage((page) => page + 1);
       setActiveItems((arr) => [arr[0] + 2, arr[1] + 2]);
     }
   };
-
   const searchFn = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(event.target.value);
   };
-
-  const filterFn = (item: Item) => {
-    if (searchText === "") return item;
-    if (item.title.toLowerCase().includes(searchText.toLowerCase())) {
-      return item;
-    }
-  };
-
   useEffect(() => {
-    setFilteredData(data.filter(filterFn));
+    setFilteredData(data.filter((item) => filterFn(item, searchText)));
     setActiveItems([0, 2]);
     setPage(1);
-  }, [searchText]);
-
+  }, [searchText, data]);
   useEffect(() => {
     if (pressBackwards) {
       if (activeItems[0] > 0) {
@@ -50,8 +40,8 @@ export default function Main({ data }: { data: Item[] }) {
         setActiveItems((arr) => [arr[0] - 2, arr[1] - 2]);
       }
     }
+    // eslint-disable-next-line
   }, [pressBackwards]);
-
   useEffect(() => {
     if (pressForward) {
       if (activeItems[1] < filteredData.length) {
@@ -59,7 +49,8 @@ export default function Main({ data }: { data: Item[] }) {
         setActiveItems((arr) => [arr[0] + 2, arr[1] + 2]);
       }
     }
-  }, [pressForward]);
+    // eslint-disable-next-line
+  }, [pressForward, filteredData]);
 
   return (
     <div className="grid">
@@ -88,12 +79,12 @@ export default function Main({ data }: { data: Item[] }) {
                   <div style={{ display: "flex", justifyContent: "center" }}>
                     <button
                       className="btn"
-                      onClick={moveBackwards}
+                      onClick={onMoveBackwards}
                       style={{ marginRight: "1rem" }}
                     >
                       {"<"}
                     </button>
-                    <button className="btn" onClick={moveForward}>
+                    <button className="btn" onClick={onMoveForward}>
                       {">"}
                     </button>
                   </div>
@@ -106,3 +97,10 @@ export default function Main({ data }: { data: Item[] }) {
     </div>
   );
 }
+
+const filterFn = (item: Item, searchText: string) => {
+  if (searchText === "") return item;
+  if (item.title.toLowerCase().includes(searchText.toLowerCase())) {
+    return item;
+  }
+};
